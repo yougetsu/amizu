@@ -3,11 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>編み図つくーる</title>
+    <title>あみーず</title>
 
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
 
     <style>
+        html{
+            font-size:100%;
+        }
+
+        body{
+            line-height: 1.7;
+            color:#432;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        img{
+            max-width:100%;
+        }
+
+        .main-nav{
+            display:flex;
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            margin-top: 34px;
+            list-style: none;
+        }
+
+        .main-nav li{
+            margin-left: 36px;
+        }
+
+        .main-nav a{
+            color:#432;
+        }
+
+        .main-nav a:hover{
+            color:#0bd;
+        }
+
+        .page-header{
+            display:flex;
+            justify-content: space-between;
+        }
+
         #canvas {
           background-color: #e1eec1;
         }
@@ -23,42 +65,95 @@
             overflow:visible;
             cursor:pointer;
         }
+
+        .wrapper{
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 4%;
+        }
+
+        .container{
+            display:flex;
+            flex-wrap:wrap;
+            align-items: flex-start;
+            height:600px;
+        }
+
+        .item{
+            background: #f5f5f5;
+            color: #fff;
+            margin:10px;
+            padding:10px;
+        }
+
+        .logo{
+            height:50px;
+        }
     </style>
 
 </head>
 <body>
-    <canvas id="canvas" width="640" height="480">
-        <p>canvas未サポートのため表示できません</p>
-    </canvas>
 
-    <div>
-        <button id="add">追加</button>
+    <header class="page-header wrapper">
+        <h1><a href="amizu.html"><img class="logo" src="image/logo_ami-zu.jpg" alt="ヘッダー画像"></a></h1>
+        <nav>
+            <ul class="main-nav">
+                <li><a href="amizu.html">News</a></li>
+                <li><a href="amizu.html">Menu</a></li>
+                <li><a href="amizu.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+
+    <div class="wrapper container">
+        <div class="item container">
+            <button id="kusari" class="imgKigou"><img src="image/kusari.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma.png" alt="button"  /></button>
+        </div>
+
+        <div class="item">
+            <canvas id="canvas" width="800" height="600">
+                <p>canvas未サポートのため表示できません</p>
+            </canvas>
+
+            <div>
+                <button id="add">追加</button>
+                <button id="delete" style="padding-left: 10px;">削除</button>
+            </div>
+
+            <div>
+                <button id="btnClear">クリア</button>
+            </div>
+
+            <a id="btnDL" href="#" download="canvas.jpg">ダウンロード</a>
+        </div>
     </div>
-
-    <div>
-        <button id="kusari" class="imgKigou"><img src="image/kusari.png" alt="button"  /></button>
-        <button id="koma" class="imgKigou"><img src="image/koma.png" alt="button"  /></button>
-    </div>
-
-    <div>
-        <button id="btnClear">クリア</button>
-    </div>
-
-    <a id="btnDL" href="#" download="canvas.jpg">ダウンロード</a>  
 
     <script>
-        
+       
         let canvas  = document.getElementById('canvas');
         let context = canvas.getContext('2d');
         let isDragging = false;
         let dragTarget = null; // ドラッグ対象の画像の添え字
+        let deleteTarget = null; // 削除対象の画像の添え字
+        let posX_d = 0;
+        let posY_d = 0;
     
         // 定数
-        const cnvWidth = 640;
-        const cnvHeight = 480;  
+        const cnvWidth = 800;
+        const cnvHeight = 600;  
 
         // 編み目記号の判断
         var pattern = 0;
+
+        // モード
+        let drawMode = 1;
+
+        var MODE = {
+            ADD : 1,
+            DELETE : 2
+        };
 
         // 編み目記号のセット
         var KIGOU = {
@@ -73,23 +168,17 @@
 
         // 編み目記号の選択
         $("#kusari").click(function(){
-            if(pattern == KIGOU.KUSARI){
-                pattern = 0;
-                return;
-            }
             pattern = KIGOU.KUSARI;
         });
 
         $("#koma").click(function(){
-            if(pattern == KIGOU.KOMA){
-                pattern = 0;
-                return;
-            }
             pattern = KIGOU.KOMA;
         });
 
         // 編み目記号の描写
         $("#add").click(function(){
+            drawMode = MODE.ADD;
+
             if(pattern == 0){
                 return;
             }
@@ -105,11 +194,11 @@
                     break;
             }
 
+            count = images.length;
             images[count] = new Image();
             images[count].src = srcs[count];
 
             draw(count);
-            count++;
         });
 
         
@@ -143,24 +232,83 @@
             }, false);
         }
         
-        
-        
-        // ドラッグ開始
-        var mouseDown = function(e) {
-            // ドラッグ開始位置
-            var posX = parseInt(e.clientX - canvas.offsetLeft);
-            var posY = parseInt(e.clientY - canvas.offsetTop);
-    
+        // 削除ボタン押下_モードの切替
+        $("#delete").click(function(){
+            drawMode = MODE.DELETE;
+        });
+
+        // 画像の削除処理
+        function deleteImg(x_d, y_d){
+            deleteTarget = -1;
             for (var i = images.length - 1; i >= 0; i--) {
-                // 当たり判定（ドラッグした位置が画像の範囲内に収まっているか）
-                if (posX >= images[i].drawOffsetX &&
-                    posX <= (images[i].drawOffsetX + images[i].drawWidth) &&
-                    posY >= images[i].drawOffsetY &&
-                    posY <= (images[i].drawOffsetY + images[i].drawHeight)
+                // 当たり判定（クリックした位置が画像の範囲内に収まっているか）
+                if (x_d >= images[i].drawOffsetX &&
+                    x_d <= (images[i].drawOffsetX + images[i].drawWidth) &&
+                    y_d >= images[i].drawOffsetY &&
+                    y_d <= (images[i].drawOffsetY + images[i].drawHeight)
                 ) {
-                  dragTarget = i;
-                  isDragging = true;
+                  deleteTarget = i;
                   break;
+                }
+            }
+
+            if(deleteTarget < 0){
+                return;
+            }
+
+            // canvas内を一旦クリア
+            context.clearRect(0, 0, canvas.width, canvas.height);
+    
+            var x = 0;
+            var y = 0;
+
+            for (var i in images) {
+                if (i == deleteTarget) {
+                    // 削除対象は描写しない
+                    continue;
+                } else {
+                    x = images[i].drawOffsetX;
+                    y = images[i].drawOffsetY;
+                }
+                w = images[i].drawWidth;
+                h = images[i].drawHeight;
+    
+                // 画像を描画
+                context.drawImage(images[i], x, y, w, h);
+            }
+            // 削除対象を配列から削除する
+            images.splice(deleteTarget,1);
+            srcs.splice(deleteTarget,1);
+        };
+        
+        // クリック時の処理
+        var mouseDown = function(e) {
+            // 削除モードのとき
+            if(drawMode == MODE.DELETE){
+                // クリック位置
+                posX_d = parseInt(e.clientX - canvas.offsetLeft);
+                posY_d = parseInt(e.clientY - canvas.offsetTop);
+
+                deleteImg(posX_d, posY_d);
+            }
+
+            // 追加モードのとき
+            if(drawMode == MODE.ADD){
+                // ドラッグ開始位置
+                var posX = parseInt(e.clientX - canvas.offsetLeft);
+                var posY = parseInt(e.clientY - canvas.offsetTop);
+    
+                for (var i = images.length - 1; i >= 0; i--) {
+                    // 当たり判定（ドラッグした位置が画像の範囲内に収まっているか）
+                    if (posX >= images[i].drawOffsetX &&
+                        posX <= (images[i].drawOffsetX + images[i].drawWidth) &&
+                        posY >= images[i].drawOffsetY &&
+                        posY <= (images[i].drawOffsetY + images[i].drawHeight)
+                    ) {
+                    dragTarget = i;
+                    isDragging = true;
+                    break;
+                    }
                 }
             }
         }
