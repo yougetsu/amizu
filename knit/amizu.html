@@ -54,6 +54,23 @@
           background-color: #e1eec1;
         }
 
+        #home{
+            
+            height: 200px;
+            margin-bottom: 40px;
+        }
+
+
+        .big-bg{
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+        }
+
+        .page-title{
+            text-align: center;
+        }
+
         .imgKigou {
             width: auto;
             padding:0;
@@ -75,7 +92,7 @@
         .container{
             display:flex;
             flex-wrap:wrap;
-            align-items: flex-start;
+            align-content: flex-start;
             height:600px;
         }
 
@@ -86,6 +103,11 @@
             padding:10px;
         }
 
+        .kigouList{
+            justify-content: space-between;
+            width:130px;
+        }
+
         .logo{
             height:50px;
         }
@@ -94,6 +116,8 @@
 </head>
 <body>
 
+    <!-- ヘッダー部 -->
+    <!-- <div id="home" class="big-bg"> -->
     <header class="page-header wrapper">
         <h1><a href="amizu.html"><img class="logo" src="image/logo_ami-zu.jpg" alt="ヘッダー画像"></a></h1>
         <nav>
@@ -105,11 +129,31 @@
         </nav>
     </header>
 
+    <!-- <div class="wrapper">
+        <h2 class="page-title">編み図作成サイト</h2>
+    </div> -->
+    <!-- </div> -->
 
+
+    <!-- コンテンツ部 -->
     <div class="wrapper container">
-        <div class="item container">
+        <div class="item container kigouList">
             <button id="kusari" class="imgKigou"><img src="image/kusari.png" alt="button"  /></button>
             <button id="koma" class="imgKigou"><img src="image/koma.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_une.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_ring.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/hikinuki.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tatiagari.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_2_minus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_3_minus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_2_plus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/koma_2_minus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tyunaga.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tyunaga_2_minus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tyunaga_3_minus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tyunaga_2_plus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/tyunaga_3_plus.png" alt="button"  /></button>
+            <button id="koma" class="imgKigou"><img src="image/naga.png" alt="button"  /></button>
         </div>
 
         <div class="item">
@@ -208,7 +252,7 @@
                 var x = 0;
                 var y = 0;
                 var w = 60;
-                var h = 40;
+                var h = 60;
                 
                 for (var j in images) {
                     // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
