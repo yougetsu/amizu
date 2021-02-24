@@ -9,12 +9,18 @@ const cnvHeight = 600;
 const imgWidth = 60;
 const imgHeight = 60;
 
-// モード
+// モード 初期は追加モード
 let drawMode = 1;
+let lineMode = 0;
 
 const MODE = {
     ADD: 1,
     DELETE: 2
+};
+
+const LINEMODE = {
+    ON: 1,
+    OFF: 0
 };
 
 // 編み目記号のセット
@@ -38,14 +44,73 @@ const KIGOU = {
 };
 
 // 編み目記号の判断
-let pattern = KIGOU.KUSARI;
-
-// TODO: srcsを削除
-// let srcs = [];
+let pattern;
 let images = [];
+
+
+// ガイドラインを引く
+function drawLine() {
+    let center = {
+        x: cnvWidth / 2,
+        y: cnvHeight / 2
+    };
+    context.fillStyle = '#ccc';
+
+    // 画像の半分の長さずつ縦横のラインを引く
+    // 
+
+
+
+
+
+    // 横線を引く
+    let drawHorizontalLine = function () {
+        context.beginPath();
+        context.moveTo(0, center.y);
+        for (let space = 0; space < cnvHeight; space++) {
+            for (let i = 0; i < cnvWidth; i++) {
+                if (i % 9 == 0) context.fillRect(i, space * imgHeight / 2, 2, 2);
+            }
+        }
+        context.closePath();
+        context.stroke();
+    };
+
+    // 縦線を引く
+    let drawVerticalLine = function () {
+        context.beginPath();
+        context.moveTo(center.x, 0);
+        for(let space = 0; space < cnvWidth; space++){
+            for (let i = 0; i < cnvHeight; i++) {
+                if (i % 9 == 0) context.fillRect(space * imgWidth / 2, i, 2, 2);
+            }
+        }
+        context.closePath();
+        context.stroke();
+    };
+
+    drawHorizontalLine();
+    drawVerticalLine();
+};
+
+// ガイドラインのON/OFF
+$("#btnLine").click(function () {
+    if (lineMode == LINEMODE.OFF) {
+        drawLine();
+        lineMode = LINEMODE.ON;
+        $(this).addClass('active');
+    }
+    else {
+        lineMode = LINEMODE.OFF;
+        $(this).removeClass('active');
+        draw();
+    }
+});
+
 
 // 編み目記号の描写
 $("#add").click(function () {
+    // モードの切替
     drawMode = MODE.ADD;
 
     const image = new Image();
@@ -106,6 +171,7 @@ $("#add").click(function () {
 
     const lastImage = images[images.length - 1];
 
+    // 描画対象の位置指定
     image.drawOffsetX = lastImage ? lastImage.drawOffsetX + 10 : 0;
     image.drawOffsetY = lastImage ? lastImage.drawOffsetY + 10 : 0;
     image.drawWidth = imgWidth;
@@ -114,13 +180,18 @@ $("#add").click(function () {
     images.push(image);
 
     image.addEventListener('load', function () {
-        // 処理
         draw();
     });
 });
 
+// 描画
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    // ガイドラインONのとき
+    if (lineMode == LINEMODE.ON) {
+        drawLine();
+    };
+
     for (const image of images) {
         // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
         // 画像を描画
@@ -133,58 +204,45 @@ $("#delete").click(function () {
     drawMode = MODE.DELETE;
 });
 
-// 画像の削除処理
-function deleteImg(x_d, y_d) {
-    let deleteTarget = -1;
+
+// クリック対象の取得
+function getImg(x, y) {
     for (let i = images.length - 1; i >= 0; i--) {
         // 当たり判定（クリックした位置が画像の範囲内に収まっているか）
-        if (x_d >= images[i].drawOffsetX &&
-            x_d <= (images[i].drawOffsetX + images[i].drawWidth) &&
-            y_d >= images[i].drawOffsetY &&
-            y_d <= (images[i].drawOffsetY + images[i].drawHeight)
+        if (x >= images[i].drawOffsetX &&
+            x <= (images[i].drawOffsetX + images[i].drawWidth) &&
+            y >= images[i].drawOffsetY &&
+            y <= (images[i].drawOffsetY + images[i].drawHeight)
         ) {
-            deleteTarget = i;
-            break;
+            return i;
         }
     }
+    return -1;
+}
 
-    if (deleteTarget < 0) {
-        return;
-    }
-
-    // 削除対象を配列から削除する
-    images.splice(deleteTarget, 1);
-    draw();
-};
 
 // クリック時の処理
 let mouseDown = function (e) {
-    // 削除モードのとき
-    if (drawMode == MODE.DELETE) {
-        // クリック位置
-        let posX = parseInt(e.clientX - canvas.offsetLeft);
-        let posY = parseInt(e.clientY - canvas.offsetTop);
+    // クリック対象の取得
+    let posX = parseInt(e.clientX - canvas.offsetLeft);
+    let posY = parseInt(e.clientY - canvas.offsetTop);
 
-        deleteImg(posX, posY);
+    let targetImg = getImg(posX, posY);
+
+    // 削除モード
+    if (drawMode == MODE.DELETE) {
+        // 削除対象を描画対象から削除する
+        if (targetImg > -1) {
+            images.splice(targetImg, 1);
+            draw();
+        }
     }
 
-    // 追加モードのとき
+    // 追加モード
     if (drawMode == MODE.ADD) {
-        // ドラッグ開始位置
-        let posX = parseInt(e.clientX - canvas.offsetLeft);
-        let posY = parseInt(e.clientY - canvas.offsetTop);
-
-        for (let i = images.length - 1; i >= 0; i--) {
-            // 当たり判定（ドラッグした位置が画像の範囲内に収まっているか）
-            if (posX >= images[i].drawOffsetX &&
-                posX <= (images[i].drawOffsetX + images[i].drawWidth) &&
-                posY >= images[i].drawOffsetY &&
-                posY <= (images[i].drawOffsetY + images[i].drawHeight)
-            ) {
-                dragTarget = i;
-                isDragging = true;
-                break;
-            }
+        if (targetImg > -1) {
+            dragTarget = targetImg;
+            isDragging = true;
         }
     }
 }
@@ -203,8 +261,8 @@ let mouseOut = function (e) {
 // ドラッグ中
 let mouseMove = function (e) {
     // ドラッグ終了位置
-   let posX = parseInt(e.clientX - canvas.offsetLeft);
-   let posY = parseInt(e.clientY - canvas.offsetTop);
+    let posX = parseInt(e.clientX - canvas.offsetLeft);
+    let posY = parseInt(e.clientY - canvas.offsetTop);
 
     if (isDragging) {
         const draggingImage = images[dragTarget];
@@ -228,7 +286,6 @@ let mouseMove = function (e) {
         if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
             draggingImage.drawOffsetY = cnvHeight - imgHeight;
         }
-
         draw();
     }
 };
@@ -236,9 +293,9 @@ let mouseMove = function (e) {
 // クリア処理
 $("#btnClear").click(function () {
     images = [];
-
     draw();
 });
+
 
 // ダウンロード処理
 $("#btnDL").click(function () {
@@ -256,70 +313,70 @@ document.getElementById('kusari').addEventListener('click', function () {
     pattern = KIGOU.KUSARI;
 });
 
-$("#koma").click(function () {
+document.getElementById('koma').addEventListener('click', function () {
     pattern = KIGOU.KOMA;
 });
 
-$("#koma_une").click(function () {
+document.getElementById('koma_une').addEventListener('click', function () {
     pattern = KIGOU.KOMA_UNE;
 });
 
-$("#koma_ring").click(function () {
+document.getElementById('koma_ring').addEventListener('click', function () {
     pattern = KIGOU.KOMA_RING;
 });
 
-$("#hikinuki").click(function () {
+document.getElementById('hikinuki').addEventListener('click', function () {
     pattern = KIGOU.HIKINUKI;
 });
 
-$("#tatiagari").click(function () {
+document.getElementById('tatiagari').addEventListener('click', function () {
     pattern = KIGOU.TATIAGARI;
 });
 
-$("#koma_2_minus").click(function () {
+document.getElementById('koma_2_minus').addEventListener('click', function () {
     pattern = KIGOU.KOMA_2_MINUS;
 });
 
-$("#koma_3_minus").click(function () {
+document.getElementById('koma_3_minus').addEventListener('click', function () {
     pattern = KIGOU.KOMA_3_MINUS;
 });
 
-$("#koma_2_plus").click(function () {
+document.getElementById('koma_2_plus').addEventListener('click', function () {
     pattern = KIGOU.KOMA_2_PLUS;
 });
 
-$("#koma_3_plus").click(function () {
+document.getElementById('koma_3_plus').addEventListener('click', function () {
     pattern = KIGOU.KOMA_3_PLUS;
 });
 
-$("#tyunaga").click(function () {
+document.getElementById('tyunaga').addEventListener('click', function () {
     pattern = KIGOU.TYUNAGA;
 });
 
-$("#tyunaga_2_minus").click(function () {
+document.getElementById('tyunaga_2_minus').addEventListener('click', function () {
     pattern = KIGOU.TYUNAGA_2_MINUS;
 });
 
-$("#tyunaga_3_minus").click(function () {
+document.getElementById('tyunaga_3_minus').addEventListener('click', function () {
     pattern = KIGOU.TYUNAGA_3_MINUS;
 });
 
-$("#tyunaga_2_plus").click(function () {
+document.getElementById('tyunaga_2_plus').addEventListener('click', function () {
     pattern = KIGOU.TYUNAGA_2_PLUS;
 });
 
-$("#tyunaga_3_plus").click(function () {
+document.getElementById('tyunaga_3_plus').addEventListener('click', function () {
     pattern = KIGOU.TYUNAGA_3_PLUS;
 });
 
-$("#naga").click(function () {
+document.getElementById('naga').addEventListener('click', function () {
     pattern = KIGOU.NAGA;
 });
 
 // ボタンの色の変更
 $(function () {
-   let btn = $('.imgKigou');
-   btn.click(function () {
+    let btn = $('.imgKigou');
+    btn.click(function () {
         btn.removeClass('active');
         $(this).addClass('active');
     });
