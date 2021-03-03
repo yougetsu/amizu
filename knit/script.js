@@ -1,7 +1,12 @@
+// 変数
 let canvas = document.getElementById('canvas');
 let context = canvas.getContext('2d');
 let isDragging = false;
 let dragTarget = null; // ドラッグ対象の画像の添え字
+let scrollVol; // スクロール（縦）の移動量
+let rateX = 1;
+let rateY = 1;
+
 
 // 定数
 const cnvWidth = 800;
@@ -56,13 +61,6 @@ function drawLine() {
     };
     context.fillStyle = '#ccc';
 
-    // 画像の半分の長さずつ縦横のラインを引く
-    // 
-
-
-
-
-
     // 横線を引く
     let drawHorizontalLine = function () {
         context.beginPath();
@@ -80,7 +78,7 @@ function drawLine() {
     let drawVerticalLine = function () {
         context.beginPath();
         context.moveTo(center.x, 0);
-        for(let space = 0; space < cnvWidth; space++){
+        for (let space = 0; space < cnvWidth; space++) {
             for (let i = 0; i < cnvHeight; i++) {
                 if (i % 9 == 0) context.fillRect(space * imgWidth / 2, i, 2, 2);
             }
@@ -98,14 +96,44 @@ $("#btnLine").click(function () {
     if (lineMode == LINEMODE.OFF) {
         drawLine();
         lineMode = LINEMODE.ON;
-        $(this).addClass('active');
+        $(this).text("OFF");
     }
     else {
         lineMode = LINEMODE.OFF;
-        $(this).removeClass('active');
+        $(this).text("ON");
         draw();
     }
 });
+
+// 画像サイズ：小　
+$("#btnSmall").click(function () {
+    rateX = 0.5;
+    rateY = 0.5;
+    changeSize();
+});
+
+// 画像サイズ：中
+$("#btnNormal").click(function () {
+    rateX = 1;
+    rateY = 1;
+    changeSize();
+});
+
+// 画像サイズ：大
+$("#btnBig").click(function () {
+    rateX = 2;
+    rateY = 2;
+    changeSize();
+});
+
+// サイズの変更
+function changeSize() {
+    images.forEach((image) => {
+        image.drawWidth = imgWidth * rateX;
+        image.drawHeight = imgHeight * rateY;
+    });
+    draw();
+}
 
 
 // 編み目記号の描写
@@ -194,7 +222,6 @@ function draw() {
 
     for (const image of images) {
         // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
-        // 画像を描画
         context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
     }
 }
@@ -224,8 +251,9 @@ function getImg(x, y) {
 // クリック時の処理
 let mouseDown = function (e) {
     // クリック対象の取得
+    scrollVol = window.pageYOffset;
     let posX = parseInt(e.clientX - canvas.offsetLeft);
-    let posY = parseInt(e.clientY - canvas.offsetTop);
+    let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
 
     let targetImg = getImg(posX, posY);
 
@@ -261,8 +289,9 @@ let mouseOut = function (e) {
 // ドラッグ中
 let mouseMove = function (e) {
     // ドラッグ終了位置
+    scrollVol = window.pageYOffset;
     let posX = parseInt(e.clientX - canvas.offsetLeft);
-    let posY = parseInt(e.clientY - canvas.offsetTop);
+    let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
 
     if (isDragging) {
         const draggingImage = images[dragTarget];
@@ -373,9 +402,18 @@ document.getElementById('naga').addEventListener('click', function () {
     pattern = KIGOU.NAGA;
 });
 
-// ボタンの色の変更
+// ボタンの色の変更：編み図記号
 $(function () {
     let btn = $('.imgKigou');
+    btn.click(function () {
+        btn.removeClass('active');
+        $(this).addClass('active');
+    });
+});
+
+// ボタンの色の変更：サイズボタン
+$(function () {
+    let btn = $('.clbtn');
     btn.click(function () {
         btn.removeClass('active');
         $(this).addClass('active');

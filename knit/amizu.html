@@ -18,9 +18,9 @@
         <h1><a href="amizu.html"><img class="logo" src="image/logo_ami-zu.jpg" alt="ヘッダー画像"></a></h1>
         <nav>
             <ul class="main-nav">
-                <li><a href="amizu.html">News</a></li>
-                <li><a href="amizu.html">Menu</a></li>
-                <li><a href="amizu.html">Contact</a></li>
+                <li><a href="amizu.html">かぎ針</a></li>
+                <li><a href="amizu.html">棒針</a></li>
+                <li><a href="amizu.html">お問い合わせ</a></li>
             </ul>
         </nav>
     </header>
@@ -52,21 +52,29 @@
         </div>
 
         <div class="item">
+            <div style="padding-bottom: 10px;">
+                <button id="add" >追加</button>
+                <button id="delete" >削除</button>
+            </div>
+
             <canvas id="canvas" width="800" height="600">
                 <p>canvas未サポートのため表示できません</p>
             </canvas>
 
             <div>
-                <button id="btnLine" >ガイドライン</button>
+                <span style="color: black;">ガイドライン：</span>
+                <button id="btnLine" class="clbtn">ON</button>
             </div>
 
             <div>
-                <button id="add" >追加</button>
-                <button id="delete" style="padding-left: 10px;">削除</button>
+                <span style="color: black;">記号サイズ：</span>
+                <button id="btnSmall" class="clbtn">小</button>
+                <button id="btnNormal" class="clbtn">中</button>
+                <button id="btnBig" class="clbtn">大</button>
             </div>
 
             <div>
-                <button id="btnClear">クリア</button>
+                <button id="btnClear"class="clbtn">クリア</button>
             </div>
 
             <a id="btnDL" href="#" download="canvas.jpg">ダウンロード</a>
