@@ -11,8 +11,10 @@ let rateY = 1;
 // 定数
 const cnvWidth = 800;
 const cnvHeight = 600;
-const imgWidth = 60;
-const imgHeight = 60;
+// const imgWidth = 60;
+// const imgHeight = 60;
+let imgWidth = 60;
+let imgHeight = 60;
 
 // モード 初期は追加モード
 let drawMode = 1;
@@ -53,42 +55,24 @@ let pattern;
 let images = [];
 
 
+
 // ガイドラインを引く
 function drawLine() {
-    let center = {
-        x: cnvWidth / 2,
-        y: cnvHeight / 2
-    };
     context.fillStyle = '#ccc';
 
     // 横線を引く
-    let drawHorizontalLine = function () {
-        context.beginPath();
-        context.moveTo(0, center.y);
-        for (let space = 0; space < cnvHeight; space++) {
-            for (let i = 0; i < cnvWidth; i++) {
-                if (i % 9 == 0) context.fillRect(i, space * imgHeight / 2, 2, 2);
-            }
+    for (let y = 0; y < cnvHeight; y++) {
+        for (let x = 0; x < cnvWidth; x += 9) {
+            context.fillRect(x, y * imgHeight / 2, 2, 2);
         }
-        context.closePath();
-        context.stroke();
-    };
+    }
 
     // 縦線を引く
-    let drawVerticalLine = function () {
-        context.beginPath();
-        context.moveTo(center.x, 0);
-        for (let space = 0; space < cnvWidth; space++) {
-            for (let i = 0; i < cnvHeight; i++) {
-                if (i % 9 == 0) context.fillRect(space * imgWidth / 2, i, 2, 2);
-            }
+    for (let x = 0; x < cnvWidth; x++) {
+        for (let y = 0; y < cnvHeight; y += 9) {
+            context.fillRect(x * imgWidth / 2, y, 2, 2);
         }
-        context.closePath();
-        context.stroke();
-    };
-
-    drawHorizontalLine();
-    drawVerticalLine();
+    }
 };
 
 // ガイドラインのON/OFF
@@ -105,33 +89,21 @@ $("#btnLine").click(function () {
     }
 });
 
-// 画像サイズ：小　
-$("#btnSmall").click(function () {
-    rateX = 0.5;
-    rateY = 0.5;
-    changeSize();
-});
 
-// 画像サイズ：中
-$("#btnNormal").click(function () {
-    rateX = 1;
-    rateY = 1;
-    changeSize();
-});
-
-// 画像サイズ：大
-$("#btnBig").click(function () {
-    rateX = 2;
-    rateY = 2;
+// サイズ変更バー
+document.getElementById('sizeChange').addEventListener('input', function(e){
+    imgWidth = +e.target.value;
+    imgHeight = +e.target.value;
     changeSize();
 });
 
 // サイズの変更
 function changeSize() {
     images.forEach((image) => {
-        image.drawWidth = imgWidth * rateX;
-        image.drawHeight = imgHeight * rateY;
+        image.drawWidth = imgWidth;
+        image.drawHeight = imgHeight;
     });
+
     draw();
 }
 
@@ -214,7 +186,9 @@ $("#add").click(function () {
 
 // 描画
 function draw() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#aaa'
+    context.fillRect(0, 0, canvas.width, canvas.height);
     // ガイドラインONのとき
     if (lineMode == LINEMODE.ON) {
         drawLine();
@@ -419,5 +393,7 @@ $(function () {
         $(this).addClass('active');
     });
 });
+
+draw();
 
 
