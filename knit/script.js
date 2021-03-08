@@ -4,17 +4,12 @@ let context = canvas.getContext('2d');
 let isDragging = false;
 let dragTarget = null; // ドラッグ対象の画像の添え字
 let scrollVol; // スクロール（縦）の移動量
-let rateX = 1;
-let rateY = 1;
-
+let imgWidth = 60;
+let imgHeight = 60;
 
 // 定数
 const cnvWidth = 800;
 const cnvHeight = 600;
-// const imgWidth = 60;
-// const imgHeight = 60;
-let imgWidth = 60;
-let imgHeight = 60;
 
 // モード 初期は追加モード
 let drawMode = 1;
@@ -26,7 +21,8 @@ const MODE = {
 };
 
 const LINEMODE = {
-    ON: 1,
+    POINT: 1,
+    SOLID: 2,
     OFF: 0
 };
 
@@ -54,59 +50,32 @@ const KIGOU = {
 let pattern;
 let images = [];
 
-
-
-// ガイドラインを引く
-function drawLine() {
-    context.fillStyle = '#ccc';
-
-    // 横線を引く
-    for (let y = 0; y < cnvHeight; y++) {
-        for (let x = 0; x < cnvWidth; x += 9) {
-            context.fillRect(x, y * imgHeight / 2, 2, 2);
-        }
-    }
-
-    // 縦線を引く
-    for (let x = 0; x < cnvWidth; x++) {
-        for (let y = 0; y < cnvHeight; y += 9) {
-            context.fillRect(x * imgWidth / 2, y, 2, 2);
-        }
-    }
-};
-
-// ガイドラインのON/OFF
-$("#btnLine").click(function () {
-    if (lineMode == LINEMODE.OFF) {
-        drawLine();
-        lineMode = LINEMODE.ON;
-        $(this).text("OFF");
-    }
-    else {
-        lineMode = LINEMODE.OFF;
-        $(this).text("ON");
-        draw();
-    }
+// ガイドライン：実線
+$("#btnLineSolid").click(function () {
+    lineMode = LINEMODE.SOLID
+    draw();
+    drawLineSolid();
 });
 
+// ガイドライン：点線
+$("#btnLinePoint").click(function () {
+    lineMode = LINEMODE.POINT
+    draw();
+    drawLinePoint();
+});
+
+// ガイドライン：OFF
+$("#btnLineOFF").click(function () {
+    lineMode = LINEMODE.OFF;
+    draw();
+});
 
 // サイズ変更バー
-document.getElementById('sizeChange').addEventListener('input', function(e){
+document.getElementById('sizeChange').addEventListener('input', function (e) {
     imgWidth = +e.target.value;
     imgHeight = +e.target.value;
     changeSize();
 });
-
-// サイズの変更
-function changeSize() {
-    images.forEach((image) => {
-        image.drawWidth = imgWidth;
-        image.drawHeight = imgHeight;
-    });
-
-    draw();
-}
-
 
 // 編み目記号の描写
 $("#add").click(function () {
@@ -171,9 +140,13 @@ $("#add").click(function () {
 
     const lastImage = images[images.length - 1];
 
-    // 描画対象の位置指定
-    image.drawOffsetX = lastImage ? lastImage.drawOffsetX + 10 : 0;
-    image.drawOffsetY = lastImage ? lastImage.drawOffsetY + 10 : 0;
+    // 描画対象の位置指定(画面外にいかないように)
+    image.drawOffsetX = lastImage ? 
+                        lastImage.drawOffsetX + imgWidth >= cnvWidth ? cnvWidth - imgWidth : lastImage.drawOffsetX + 10 
+                        : 0;
+    image.drawOffsetY = lastImage ? 
+                        lastImage.drawOffsetY + imgHeight >= cnvHeight  ? cnvHeight - imgHeight : lastImage.drawOffsetY + 10
+                        : 0;
     image.drawWidth = imgWidth;
     image.drawHeight = imgHeight;
 
@@ -184,43 +157,10 @@ $("#add").click(function () {
     });
 });
 
-// 描画
-function draw() {
-    // context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#aaa'
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    // ガイドラインONのとき
-    if (lineMode == LINEMODE.ON) {
-        drawLine();
-    };
-
-    for (const image of images) {
-        // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
-        context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
-    }
-}
-
 // 削除ボタン押下_モードの切替
 $("#delete").click(function () {
     drawMode = MODE.DELETE;
 });
-
-
-// クリック対象の取得
-function getImg(x, y) {
-    for (let i = images.length - 1; i >= 0; i--) {
-        // 当たり判定（クリックした位置が画像の範囲内に収まっているか）
-        if (x >= images[i].drawOffsetX &&
-            x <= (images[i].drawOffsetX + images[i].drawWidth) &&
-            y >= images[i].drawOffsetY &&
-            y <= (images[i].drawOffsetY + images[i].drawHeight)
-        ) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 
 // クリック時の処理
 let mouseDown = function (e) {
@@ -299,7 +239,6 @@ $("#btnClear").click(function () {
     draw();
 });
 
-
 // ダウンロード処理
 $("#btnDL").click(function () {
     document.getElementById("btnDL").href = canvas.toDataURL("image/jpeg");
@@ -376,6 +315,103 @@ document.getElementById('naga').addEventListener('click', function () {
     pattern = KIGOU.NAGA;
 });
 
+// 処理
+// クリック対象の取得
+function getImg(x, y) {
+    for (let i = images.length - 1; i >= 0; i--) {
+        // 当たり判定（クリックした位置が画像の範囲内に収まっているか）
+        if (x >= images[i].drawOffsetX &&
+            x <= (images[i].drawOffsetX + images[i].drawWidth) &&
+            y >= images[i].drawOffsetY &&
+            y <= (images[i].drawOffsetY + images[i].drawHeight)
+        ) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// 描画
+function draw() {
+    context.fillStyle = '#ffe4c4'
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // ガイドラインの描画
+    guideLine();
+
+    for (const image of images) {
+        // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
+        context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
+    }
+}
+
+// サイズの変更
+function changeSize() {
+    images.forEach((image) => {
+        image.drawWidth = imgWidth;
+        image.drawHeight = imgHeight;
+    });
+    draw();
+}
+
+// ガイドラインの描画
+function guideLine() {
+    switch (lineMode) {
+        case LINEMODE.SOLID:
+            drawLineSolid();
+            break;
+
+        case LINEMODE.POINT:
+            drawLinePoint();
+            break;
+
+        case LINEMODE.OFF:
+            break;
+
+        default :
+            break;
+    }
+}
+
+// 点線を引く
+function drawLinePoint() {
+    context.fillStyle = '#ccc';
+
+    // 横線を引く
+    for (let y = 0; y < cnvHeight; y++) {
+        for (let x = 0; x < cnvWidth; x += 9) {
+            context.fillRect(x, y * imgHeight / 2, 2, 2);
+        }
+    }
+
+    // 縦線を引く
+    for (let x = 0; x < cnvWidth; x++) {
+        for (let y = 0; y < cnvHeight; y += 9) {
+            context.fillRect(x * imgWidth / 2, y, 2, 2);
+        }
+    }
+};
+
+// 実線を引く
+function drawLineSolid() {
+    context.beginPath();
+
+    // 横線を引く
+    for (let y = 0; y < cnvHeight; y += imgHeight / 2) {
+        context.moveTo(0, y);
+        context.lineTo(cnvWidth, y);
+    }
+
+    // 縦線を引く
+    for (let x = 0; x < cnvWidth; x += imgWidth / 2) {
+        context.moveTo(x, 0);
+        context.lineTo(x, cnvHeight);
+    }
+    context.strokeStyle = '#ccc';
+    context.lineWidth = 2;
+    context.stroke();
+}
+
 // ボタンの色の変更：編み図記号
 $(function () {
     let btn = $('.imgKigou');
@@ -385,15 +421,17 @@ $(function () {
     });
 });
 
-// ボタンの色の変更：サイズボタン
+// ボタンの色の変更：ガイドライン
 $(function () {
-    let btn = $('.clbtn');
+    let btn = $('.linebtn');
     btn.click(function () {
         btn.removeClass('active');
         $(this).addClass('active');
     });
 });
 
+
+// ページ読み込み時の処理
 draw();
 
 

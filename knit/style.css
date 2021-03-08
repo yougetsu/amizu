@@ -103,6 +103,9 @@ img{
     background-color: lightblue;
 }
 
-.clbtn{
-    margin-bottom: 10px;
+.clbtn,.linebtn{
+    margin-bottom: 5px;
+    width: 60px;
+    height: 30px;
 }
+
