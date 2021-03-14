@@ -48,20 +48,22 @@ const KIGOU = {
 
 // 編み目記号の判断
 let pattern;
+
+// オブジェクトの格納
 let images = [];
+let texts = [];
+
 
 // ガイドライン：実線
 $("#btnLineSolid").click(function () {
     lineMode = LINEMODE.SOLID
     draw();
-    drawLineSolid();
 });
 
 // ガイドライン：点線
 $("#btnLinePoint").click(function () {
     lineMode = LINEMODE.POINT
     draw();
-    drawLinePoint();
 });
 
 // ガイドライン：OFF
@@ -75,6 +77,19 @@ document.getElementById('sizeChange').addEventListener('input', function (e) {
     imgWidth = +e.target.value;
     imgHeight = +e.target.value;
     changeSize();
+});
+
+// テキストの追加
+$("#btnText").click(function(e){
+    // テキストを描画
+    let text = document.getElementById("text").value;
+    context.fillStyle="Black";
+    context.fillText(text, cnvWidth/2, cnvHeight/2);
+
+    // テキストデータを格納
+    let textObj = {val:text, textX:cnvWidth/2, textY:cnvHeight/2, textWidth:imgWidth, textHeight:imgHeight};
+    texts.push(textObj);  
+    document.getElementById("text").value = ""; 
 });
 
 // 編み目記号の描写
@@ -339,9 +354,15 @@ function draw() {
     // ガイドラインの描画
     guideLine();
 
-    for (const image of images) {
-        // 画像を描画した時の情報を記憶（Imageのプロパティに突っ込むのはちょっと反則かもだけど）                   
+    // 画像の描画
+    for (const image of images) {                   
         context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
+    }
+
+    // テキストの描画
+    for (const text of texts) { 
+        context.fillStyle="Black";              
+        context.fillText(text.val, text.textX, text.textY);
     }
 }
 
