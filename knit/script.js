@@ -7,6 +7,7 @@ let dragTarget = {
     image:-1,
     text:-1
 }
+
 let scrollVol; // スクロール（縦）の移動量
 let imgWidth = 60;
 let imgHeight = 60;
@@ -17,7 +18,7 @@ const cnvHeight = 600;
 
 // モード
 const MODE = {
-    ADD: 1,
+    ADD:1,
     DELETE: 2
 };
 
@@ -32,25 +33,6 @@ const LINEMODE = {
 let drawMode = MODE.ADD;
 let lineMode = LINEMODE.OFF;
 
-// 編み目記号のセット
-const KIGOU = {
-    KUSARI: 1,
-    KOMA: 2,
-    KOMA_UNE: 3,
-    KOMA_RING: 4,
-    HIKINUKI: 5,
-    TATIAGARI: 6,
-    KOMA_2_MINUS: 7,
-    KOMA_3_MINUS: 8,
-    KOMA_2_PLUS: 9,
-    KOMA_3_PLUS: 10,
-    TYUNAGA: 11,
-    TYUNAGA_2_MINUS: 12,
-    TYUNAGA_3_MINUS: 13,
-    TYUNAGA_2_PLUS: 14,
-    TYUNAGA_3_PLUS: 15,
-    NAGA: 16
-};
 
 // 編み目記号の判断
 let pattern;
@@ -78,6 +60,22 @@ $("#btnLineOFF").click(function () {
     draw();
 });
 
+// 左回転ボタン
+// $("#btnLeftRotate").click(function(){
+//     context.save();
+
+//     // 画像の中心を回転中心に？
+//     let cx = images[0].drawOffsetX + imgWidth/2;
+//     let cy = images[0].drawOffsetY + imgHeight/2;
+
+//     context.setTransform(Math.cos(30), Math.sin(30), -Math.sin(30), Math.cos(30), 
+//                          cx - cx * Math.cos(30) + cy*Math.sin(30), cy-cx*Math.sin(30) - cy*Math.cos(30));
+
+//     draw();
+//     context.restore();
+// })
+
+
 // サイズ変更バー
 document.getElementById('sizeChange').addEventListener('input', function (e) {
     imgWidth = +e.target.value;
@@ -103,66 +101,12 @@ $("#btnText").click(function (e) {
     draw();
 });
 
-// 編み目記号の描写
-$("#add").click(function () {
-    // モードの切替
-    drawMode = MODE.ADD;
 
+
+// 画像をキャンバスに追加
+function addImage(imgName){
     const image = new Image();
-
-    switch (pattern) {
-        case KIGOU.KUSARI:
-            image.src = "image/kusari.png";
-            break;
-        case KIGOU.KOMA:
-            image.src = "image/koma.png";
-            break;
-        case KIGOU.KOMA_UNE:
-            image.src = "image/koma_une.png";
-            break;
-        case KIGOU.KOMA_RING:
-            image.src = "image/koma_ring.png";
-            break;
-        case KIGOU.HIKINUKI:
-            image.src = "image/hikinuki.png";
-            break;
-        case KIGOU.TATIAGARI:
-            image.src = "image/tatiagari.png";
-            break;
-        case KIGOU.KOMA_2_MINUS:
-            image.src = "image/koma_2_minus.png";
-            break;
-        case KIGOU.KOMA_3_MINUS:
-            image.src = "image/koma_3_minus.png";
-            break;
-        case KIGOU.KOMA_2_PLUS:
-            image.src = "image/koma_2_plus.png";
-            break;
-        case KIGOU.KOMA_3_PLUS:
-            image.src = "image/koma_3_plus.png";
-            break;
-        case KIGOU.TYUNAGA:
-            image.src = "image/tyunaga.png";
-            break;
-        case KIGOU.TYUNAGA_2_MINUS:
-            image.src = "image/tyunaga_2_minus.png";
-            break;
-        case KIGOU.TYUNAGA_3_MINUS:
-            image.src = "image/tyunaga_3_minus.png";
-            break;
-        case KIGOU.TYUNAGA_2_PLUS:
-            image.src = "image/tyunaga_2_plus.png";
-            break;
-        case KIGOU.TYUNAGA_3_PLUS:
-            image.src = "image/tyunaga_3_plus.png";
-            break;
-        case KIGOU.NAGA:
-            image.src = "image/naga.png";
-            break;
-
-        default:
-            break;
-    }
+    image.src = imgName;
 
     const lastImage = images[images.length - 1];
 
@@ -181,11 +125,26 @@ $("#add").click(function () {
     image.addEventListener('load', function () {
         draw();
     });
-});
+
+}
+
+
 
 // 削除ボタン押下_モードの切替
-$("#delete").click(function () {
-    drawMode = MODE.DELETE;
+$("#btnDelete").click(function () {
+    if(drawMode == MODE.DELETE){
+        drawMode = MODE.ADD;
+        $("#btnDelete").removeClass('active');
+    }
+    else{
+        drawMode = MODE.DELETE;
+        $("#btnDelete").addClass('active');
+    }   
+});
+
+// 編集ボタン押下_モードの切替
+$("#btnEdit").click(function () {
+    drawMode = MODE.EDIT;
 });
 
 // クリック時の処理
@@ -212,13 +171,18 @@ let mouseDown = function (e) {
         }
 
         draw();
+        return;
     }
 
-    // 追加モード
-    if (drawMode == MODE.ADD) {
-        if (dragTarget.image > -1 || dragTarget.text > -1) {
-            isDragging = true;
-        }
+    if(dragTarget.image > -1 || dragTarget.text > -1){
+        // 画像を強調する
+        // let x = images[dragTarget.image].drawOffsetX;
+        // let y = images[dragTarget.image].drawOffsetY;
+
+        // context.strokeStyle = "blue";
+        // context.strokeRect(x, y, imgWidth, imgHeight);
+
+        isDragging = true;
     }
 }
 
@@ -315,69 +279,73 @@ document.body.addEventListener('mouseup', function (e) { mouseUp(e); }, false);
 canvas.addEventListener('mouseout', function (e) { mouseOut(e); }, false);
 
 // 編み目記号の選択
+
+//#region 編み目記号
 document.getElementById('kusari').addEventListener('click', function () {
-    pattern = KIGOU.KUSARI;
+    addImage("image/kusari.png");
 });
 
 document.getElementById('koma').addEventListener('click', function () {
-    pattern = KIGOU.KOMA;
+    addImage("image/koma.png");
 });
 
 document.getElementById('koma_une').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_UNE;
+    addImage("image/koma_une.png");
 });
 
 document.getElementById('koma_ring').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_RING;
+    addImage("image/koma_ring.png");
 });
 
 document.getElementById('hikinuki').addEventListener('click', function () {
-    pattern = KIGOU.HIKINUKI;
+    addImage("image/hikinuki.png");
 });
 
 document.getElementById('tatiagari').addEventListener('click', function () {
-    pattern = KIGOU.TATIAGARI;
+    addImage("image/tatiagari.png");
 });
 
 document.getElementById('koma_2_minus').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_2_MINUS;
+    addImage("image/koma_2_minus.png");
 });
 
 document.getElementById('koma_3_minus').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_3_MINUS;
+    addImage("image/koma_3_minus.png");
 });
 
 document.getElementById('koma_2_plus').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_2_PLUS;
+    addImage("image/koma_2_plus.png");
 });
 
 document.getElementById('koma_3_plus').addEventListener('click', function () {
-    pattern = KIGOU.KOMA_3_PLUS;
+    addImage("image/koma_3_plus.png");
 });
 
 document.getElementById('tyunaga').addEventListener('click', function () {
-    pattern = KIGOU.TYUNAGA;
+    addImage("image/tyunaga.png");
 });
 
 document.getElementById('tyunaga_2_minus').addEventListener('click', function () {
-    pattern = KIGOU.TYUNAGA_2_MINUS;
+    addImage("image/tyunaga_2_minus.png");
 });
 
 document.getElementById('tyunaga_3_minus').addEventListener('click', function () {
-    pattern = KIGOU.TYUNAGA_3_MINUS;
+    addImage("image/tyunaga_3_minus.png");
 });
 
 document.getElementById('tyunaga_2_plus').addEventListener('click', function () {
-    pattern = KIGOU.TYUNAGA_2_PLUS;
+    addImage("image/tyunaga_2_plus.png");
 });
 
 document.getElementById('tyunaga_3_plus').addEventListener('click', function () {
-    pattern = KIGOU.TYUNAGA_3_PLUS;
+    addImage("image/tyunaga_3_plus.png");
 });
 
 document.getElementById('naga').addEventListener('click', function () {
-    pattern = KIGOU.NAGA;
+    addImage("image/naga.png");
 });
+
+//#endregion
 
 // 処理
 // クリック対象の取得
@@ -500,7 +468,7 @@ function drawLineSolid() {
         context.lineTo(x, cnvHeight);
     }
     context.strokeStyle = '#ccc';
-    context.lineWidth = 2;
+    context.lineWidth = 1;
     context.stroke();
 }
 
@@ -521,7 +489,6 @@ $(function () {
         $(this).addClass('active');
     });
 });
-
 
 // ページ読み込み時の処理
 draw();
