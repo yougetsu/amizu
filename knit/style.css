@@ -68,7 +68,7 @@ img{
     display:flex;
     flex-wrap:wrap;
     align-content: flex-start;
-    height:600px;
+    height:auto;
 }
 
 .item{
@@ -81,6 +81,7 @@ img{
 .kigouList{
     justify-content: space-between;
     width:150px;
+    height: 650px;
     overflow: scroll;
 }
 
@@ -114,5 +115,16 @@ img{
     background-color: lightblue;
 }
 
+/* フッター */
+footer{
+    background: lightblue;
+    text-align: center;
+    padding: 13px 0;
+    
+}
 
+footer p{
+    color: white;
+    font-size: 0.875rem;
+}
 
