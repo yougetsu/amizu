@@ -17,6 +17,7 @@ let imgHeight = 60;
 const cnvWidth = 800;
 const cnvHeight = 600;
 const angle = 10;
+const fontSize = 22;
 
 // モード
 const MODE = {
@@ -111,17 +112,25 @@ document.getElementById('sizeChange').addEventListener('input', function (e) {
 // テキストの追加
 $("#btnText").click(function (e) {
     let text = document.getElementById("text").value;
-    let length = text.length;
+    let hankaku = 0;
+    let zenkaku = 0;
+    for(let i=0; i<text.length; i++){
+        let result = isHan(text.charAt(i));
+        if(result == false){
+            zenkaku++;
+        }
+        else{
+            hankaku++;
+        }
+    }
 
     // テキストデータを格納
     let textObj = {
         val: text,
         textX: cnvWidth / 2,
         textY: cnvHeight / 2,
-        textWidth: imgWidth,
-        textHeight: imgHeight
-        // textWidth: 22 * length,
-        // textHeight: 22
+        textWidth:  (zenkaku * fontSize) + (hankaku * (fontSize / 2)),
+        textHeight: fontSize,
     };
 
     texts.push(textObj);
@@ -272,16 +281,16 @@ let mouseMove = function (e) {
                 draggingText.textX = 0;
             }
 
-            if (draggingText.textX + imgWidth > cnvWidth) {
-                draggingText.textX = cnvWidth - imgWidth;
+            if (draggingText.textX + draggingText.textWidth > cnvWidth) {
+                draggingText.textX = cnvWidth - draggingText.textWidth;
             }
 
             if (draggingText.textY < 0) {
                 draggingText.textY = 0;
             }
 
-            if (draggingText.textY + imgHeight > cnvHeight) {
-                draggingText.textY = cnvHeight - imgHeight;
+            if (draggingText.textY + fontSize > cnvHeight) {
+                draggingText.textY = cnvHeight - fontSize;
             }
         }
 
@@ -434,8 +443,8 @@ function draw() {
     // テキストの描画
     for (let text of texts) {
         context.fillStyle = "Black";
-        context.font = "22px serif";
-        context.fillText(text.val, text.textX, text.textY);
+        context.font = fontSize + 'px serif';
+        context.fillText(text.val, text.textX, text.textY + fontSize);
     }
 }
 
@@ -514,6 +523,19 @@ function drawLineSolid() {
     context.lineWidth = 1;
     context.stroke();
 }
+
+// 半角・全角チェック：半角=true 全角=false
+function isHan(c){
+    var code = c.charCodeAt(0);
+    var f;
+    
+    f  = (code >= 0x0 && code < 0x81);
+    f |= (code == 0xf8f0);
+    f |= (code >= 0xff61 && code < 0xffa0);
+    f |= (code >= 0xf8f1 && code < 0xf8f4);
+    
+    return !!f;
+  }
 
 // ボタンの色の変更：編み図記号
 $(function () {
