@@ -4,10 +4,11 @@ let context = canvas.getContext('2d');
 let isDragging = false;
 
 let dragTarget = {
-    image:-1,
-    text:-1
+    image: -1,
+    text: -1
 }
 
+let rotateTarget;
 let scrollVol; // スクロール（縦）の移動量
 let imgWidth = 60;
 let imgHeight = 60;
@@ -15,10 +16,11 @@ let imgHeight = 60;
 // 定数
 const cnvWidth = 800;
 const cnvHeight = 600;
+const angle = 10;
 
 // モード
 const MODE = {
-    ADD:1,
+    ADD: 1,
     DELETE: 2
 };
 
@@ -61,19 +63,42 @@ $("#btnLineOFF").click(function () {
 });
 
 // 左回転ボタン
-// $("#btnLeftRotate").click(function(){
-//     context.save();
+$("#btnLeftRotate").click(function () {
 
-//     // 画像の中心を回転中心に？
-//     let cx = images[0].drawOffsetX + imgWidth/2;
-//     let cy = images[0].drawOffsetY + imgHeight/2;
+    // 未選択時抜ける
+    if (rotateTarget == -1) {
+        return;
+    }
 
-//     context.setTransform(Math.cos(30), Math.sin(30), -Math.sin(30), Math.cos(30), 
-//                          cx - cx * Math.cos(30) + cy*Math.sin(30), cy-cx*Math.sin(30) - cy*Math.cos(30));
+    // キャンバスをクリア
+    context.fillStyle = '#ffe4c4'
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
-//     draw();
-//     context.restore();
-// })
+    // 角度の更新
+    let imgTarget = images[rotateTarget];
+    imgTarget.drawAngle = (imgTarget.drawAngle - angle <= -360) ? 0 : imgTarget.drawAngle - angle;
+
+    draw();
+})
+
+// 右回転ボタン
+$("#btnRightRotate").click(function () {
+
+    // 未選択時抜ける
+    if (rotateTarget == -1) {
+        return;
+    }
+
+    // キャンバスをクリア
+    context.fillStyle = '#ffe4c4'
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 角度の更新
+    let imgTarget = images[rotateTarget];
+    imgTarget.drawAngle = (imgTarget.drawAngle + angle >= 360) ? 0 : imgTarget.drawAngle + angle;
+
+    draw();
+})
 
 
 // サイズ変更バー
@@ -86,6 +111,7 @@ document.getElementById('sizeChange').addEventListener('input', function (e) {
 // テキストの追加
 $("#btnText").click(function (e) {
     let text = document.getElementById("text").value;
+    let length = text.length;
 
     // テキストデータを格納
     let textObj = {
@@ -94,6 +120,8 @@ $("#btnText").click(function (e) {
         textY: cnvHeight / 2,
         textWidth: imgWidth,
         textHeight: imgHeight
+        // textWidth: 22 * length,
+        // textHeight: 22
     };
 
     texts.push(textObj);
@@ -101,10 +129,8 @@ $("#btnText").click(function (e) {
     draw();
 });
 
-
-
 // 画像をキャンバスに追加
-function addImage(imgName){
+function addImage(imgName) {
     const image = new Image();
     image.src = imgName;
 
@@ -120,6 +146,9 @@ function addImage(imgName){
     image.drawWidth = imgWidth;
     image.drawHeight = imgHeight;
 
+    // 画像の角度
+    image.drawAngle = 0;
+
     images.push(image);
 
     image.addEventListener('load', function () {
@@ -128,18 +157,16 @@ function addImage(imgName){
 
 }
 
-
-
 // 削除ボタン押下_モードの切替
 $("#btnDelete").click(function () {
-    if(drawMode == MODE.DELETE){
+    if (drawMode == MODE.DELETE) {
         drawMode = MODE.ADD;
         $("#btnDelete").removeClass('active');
     }
-    else{
+    else {
         drawMode = MODE.DELETE;
         $("#btnDelete").addClass('active');
-    }   
+    }
 });
 
 // 編集ボタン押下_モードの切替
@@ -158,6 +185,8 @@ let mouseDown = function (e) {
     dragTarget.image = targetImg;
     dragTarget.text = targetText;
 
+    rotateTarget = targetImg;
+
     // 削除モード
     if (drawMode == MODE.DELETE) {
         // 削除対象を描画対象から削除する
@@ -174,13 +203,13 @@ let mouseDown = function (e) {
         return;
     }
 
-    if(dragTarget.image > -1 || dragTarget.text > -1){
+    if (dragTarget.image > -1 || dragTarget.text > -1) {
         // 画像を強調する
-        // let x = images[dragTarget.image].drawOffsetX;
-        // let y = images[dragTarget.image].drawOffsetY;
+        // let x = texts[dragTarget.text].textX;
+        // let y = texts[dragTarget.text].textY;
 
         // context.strokeStyle = "blue";
-        // context.strokeRect(x, y, imgWidth, imgHeight);
+        // context.strokeRect(x, y, texts[dragTarget.text].textWidth, texts[dragTarget.text].textHeight);
 
         isDragging = true;
     }
@@ -207,55 +236,55 @@ let mouseMove = function (e) {
     // ドラッグ時
     if (isDragging) {
         // 画像
-        if(dragTarget.image > -1 ){
+        if (dragTarget.image > -1) {
             const draggingImage = images[dragTarget.image];
 
             draggingImage.drawOffsetX = posX - draggingImage.drawWidth / 2;
             draggingImage.drawOffsetY = posY - draggingImage.drawHeight / 2;
-    
+
             // 画面外防止
             if (draggingImage.drawOffsetX < 0) {
                 draggingImage.drawOffsetX = 0;
             }
-    
+
             if (draggingImage.drawOffsetX + imgWidth > cnvWidth) {
                 draggingImage.drawOffsetX = cnvWidth - imgWidth;
             }
-    
+
             if (draggingImage.drawOffsetY < 0) {
                 draggingImage.drawOffsetY = 0;
             }
-    
+
             if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
                 draggingImage.drawOffsetY = cnvHeight - imgHeight;
             }
         }
 
         // テキスト
-        if(dragTarget.text > -1 ){
+        if (dragTarget.text > -1) {
             const draggingText = texts[dragTarget.text];
 
             draggingText.textX = posX - draggingText.textWidth / 2;
             draggingText.textY = posY - draggingText.textHeight / 2;
-    
+
             // 画面外防止
             if (draggingText.textX < 0) {
                 draggingText.textX = 0;
             }
-    
+
             if (draggingText.textX + imgWidth > cnvWidth) {
                 draggingText.textX = cnvWidth - imgWidth;
             }
-    
+
             if (draggingText.textY < 0) {
                 draggingText.textY = 0;
             }
-    
+
             if (draggingText.textY + imgHeight > cnvHeight) {
                 draggingText.textY = cnvHeight - imgHeight;
             }
         }
-        
+
         draw();
     }
 };
@@ -394,8 +423,13 @@ function draw() {
 
     // 画像の描画
     for (let image of images) {
-        context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
-    }
+        if (image.drawAngle != 0) {
+            rotateImg(image, image.drawOffsetX + imgWidth / 2, image.drawOffsetY + imgHeight / 2, image.drawAngle);
+        }
+        else {
+            context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
+        }
+    }   
 
     // テキストの描画
     for (let text of texts) {
@@ -403,6 +437,15 @@ function draw() {
         context.font = "22px serif";
         context.fillText(text.val, text.textX, text.textY);
     }
+}
+
+// 画像を回転して描写する
+function rotateImg(imgTarget, cx, cy, imgAngle) {
+    context.save();
+    context.translate(cx, cy);
+    context.rotate(imgAngle * Math.PI / 180);
+    context.drawImage(imgTarget, -(imgWidth / 2), -(imgHeight / 2), imgTarget.drawWidth, imgTarget.drawHeight);
+    context.restore();
 }
 
 // サイズの変更
