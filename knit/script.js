@@ -8,7 +8,7 @@ let dragTarget = {
     text: -1
 }
 
-let rotateTarget;
+let rotateTarget = -1;
 let scrollVol; // スクロール（縦）の移動量
 let imgWidth = 60;
 let imgHeight = 60;
