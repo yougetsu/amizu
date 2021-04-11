@@ -114,12 +114,12 @@ $("#btnText").click(function (e) {
     let text = document.getElementById("text").value;
     let hankaku = 0;
     let zenkaku = 0;
-    for(let i=0; i<text.length; i++){
+    for (let i = 0; i < text.length; i++) {
         let result = isHan(text.charAt(i));
-        if(result == false){
+        if (result == false) {
             zenkaku++;
         }
-        else{
+        else {
             hankaku++;
         }
     }
@@ -129,7 +129,7 @@ $("#btnText").click(function (e) {
         val: text,
         textX: cnvWidth / 2,
         textY: cnvHeight / 2,
-        textWidth:  (zenkaku * fontSize) + (hankaku * (fontSize / 2)),
+        textWidth: (zenkaku * fontSize) + (hankaku * (fontSize / 2)),
         textHeight: fontSize,
     };
 
@@ -183,114 +183,56 @@ $("#btnEdit").click(function () {
     drawMode = MODE.EDIT;
 });
 
-// クリック時の処理
+// マウス＿クリック時の処理
 let mouseDown = function (e) {
     // クリック対象の取得
     scrollVol = window.pageYOffset;
     let posX = parseInt(e.clientX - canvas.offsetLeft);
     let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
 
-    let { targetImg, targetText } = getTarget(posX, posY);
-    dragTarget.image = targetImg;
-    dragTarget.text = targetText;
-
-    rotateTarget = targetImg;
-
-    // 削除モード
-    if (drawMode == MODE.DELETE) {
-        // 削除対象を描画対象から削除する
-        if (targetImg > -1) {
-            images.splice(targetImg, 1);
-        }
-
-        // 文字
-        if (targetText > -1) {
-            texts.splice(targetText, 1);
-        }
-
-        draw();
-        return;
-    }
-
-    if (dragTarget.image > -1 || dragTarget.text > -1) {
-        // 画像を強調する
-        // let x = texts[dragTarget.text].textX;
-        // let y = texts[dragTarget.text].textY;
-
-        // context.strokeStyle = "blue";
-        // context.strokeRect(x, y, texts[dragTarget.text].textWidth, texts[dragTarget.text].textHeight);
-
-        isDragging = true;
-    }
+    imgClick(posX, posY);
 }
 
-// ドラッグ終了
+// マウス＿ドラッグ中の処理
+let mouseMove = function (e) {
+    // ドラッグ終了位置
+    let posX = parseInt(e.clientX - canvas.offsetLeft);
+    let posY = parseInt(e.clientY - canvas.offsetTop + window.pageYOffset);
+
+    imgMove(posX, posY);
+};
+
+// マウス＿ドラッグ終了時の処理
 let mouseUp = function (e) {
     isDragging = false;
 };
 
+// スマホ＿タッチ時の処理
+let touchStartEvent = function (e) {
+    e.preventDefault();
 
-// ドラッグ中
-let mouseMove = function (e) {
+    // クリック対象の取得
+    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
+    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + window.pageYOffset);
+
+    imgClick(posX, posY);
+}
+
+// スマホ＿スワイプ中の処理
+let touchMoveEvent = function (e) {
+    e.preventDefault();
+
     // ドラッグ終了位置
-    scrollVol = window.pageYOffset;
-    let posX = parseInt(e.clientX - canvas.offsetLeft);
-    let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
+    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
+    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + window.pageYOffset);
 
-    // ドラッグ時
-    if (isDragging) {
-        // 画像
-        if (dragTarget.image > -1) {
-            const draggingImage = images[dragTarget.image];
+    imgMove(posX, posY);
+};
 
-            draggingImage.drawOffsetX = posX - draggingImage.drawWidth / 2;
-            draggingImage.drawOffsetY = posY - draggingImage.drawHeight / 2;
-
-            // 画面外防止
-            if (draggingImage.drawOffsetX < 0) {
-                draggingImage.drawOffsetX = 0;
-            }
-
-            if (draggingImage.drawOffsetX + imgWidth > cnvWidth) {
-                draggingImage.drawOffsetX = cnvWidth - imgWidth;
-            }
-
-            if (draggingImage.drawOffsetY < 0) {
-                draggingImage.drawOffsetY = 0;
-            }
-
-            if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
-                draggingImage.drawOffsetY = cnvHeight - imgHeight;
-            }
-        }
-
-        // テキスト
-        if (dragTarget.text > -1) {
-            const draggingText = texts[dragTarget.text];
-
-            draggingText.textX = posX - draggingText.textWidth / 2;
-            draggingText.textY = posY - draggingText.textHeight / 2;
-
-            // 画面外防止
-            if (draggingText.textX < 0) {
-                draggingText.textX = 0;
-            }
-
-            if (draggingText.textX + draggingText.textWidth > cnvWidth) {
-                draggingText.textX = cnvWidth - draggingText.textWidth;
-            }
-
-            if (draggingText.textY < 0) {
-                draggingText.textY = 0;
-            }
-
-            if (draggingText.textY + fontSize > cnvHeight) {
-                draggingText.textY = cnvHeight - fontSize;
-            }
-        }
-
-        draw();
-    }
+// スマホ＿スワイプ終了時の処理
+let touchEndEvent = function (e) {
+    e.preventDefault();
+    isDragging = false;
 };
 
 // canvasの枠から外れた
@@ -298,116 +240,6 @@ let mouseOut = function (e) {
     // canvas外にマウスカーソルが移動した場合に、ドラッグ終了としたい場合はコメントインする
     // mouseUp(e);
 }
-
-// スマホ＿タッチ時
-let touchStartEvent = function (e) {
-    e.preventDefault();
-
-    // クリック対象の取得
-    scrollVol = window.pageYOffset;
-    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
-    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + scrollVol);
-
-    // alert("x座標は"+ posX + " Y座標は" + posY);
-
-    let { targetImg, targetText } = getTarget(posX, posY);
-    dragTarget.image = targetImg;
-    dragTarget.text = targetText;
-
-    rotateTarget = targetImg;
-
-    // 削除モード
-    if (drawMode == MODE.DELETE) {
-        // 削除対象を描画対象から削除する
-        if (targetImg > -1) {
-            images.splice(targetImg, 1);
-        }
-
-        // 文字
-        if (targetText > -1) {
-            texts.splice(targetText, 1);
-        }
-
-        draw();
-        return;
-    }
-
-    if (dragTarget.image > -1 || dragTarget.text > -1) {
-        isDragging = true;
-    }
-}
-
-// ドラッグ終了
-let touchEndEvent = function (e) {
-    e.preventDefault();
-    isDragging = false;
-};
-
-
-// スマホ＿スワイプ中
-let touchMoveEvent = function (e) {
-    e.preventDefault();
-
-    // ドラッグ終了位置
-    scrollVol = window.pageYOffset;
-    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
-    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + scrollVol);
-
-    // ドラッグ時
-    if (isDragging) {
-        // 画像
-        if (dragTarget.image > -1) {
-            const draggingImage = images[dragTarget.image];
-
-            draggingImage.drawOffsetX = posX - draggingImage.drawWidth / 2;
-            draggingImage.drawOffsetY = posY - draggingImage.drawHeight / 2;
-
-            // 画面外防止
-            if (draggingImage.drawOffsetX < 0) {
-                draggingImage.drawOffsetX = 0;
-            }
-
-            if (draggingImage.drawOffsetX + imgWidth > cnvWidth) {
-                draggingImage.drawOffsetX = cnvWidth - imgWidth;
-            }
-
-            if (draggingImage.drawOffsetY < 0) {
-                draggingImage.drawOffsetY = 0;
-            }
-
-            if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
-                draggingImage.drawOffsetY = cnvHeight - imgHeight;
-            }
-        }
-
-        // テキスト
-        if (dragTarget.text > -1) {
-            const draggingText = texts[dragTarget.text];
-
-            draggingText.textX = posX - draggingText.textWidth / 2;
-            draggingText.textY = posY - draggingText.textHeight / 2;
-
-            // 画面外防止
-            if (draggingText.textX < 0) {
-                draggingText.textX = 0;
-            }
-
-            if (draggingText.textX + draggingText.textWidth > cnvWidth) {
-                draggingText.textX = cnvWidth - draggingText.textWidth;
-            }
-
-            if (draggingText.textY < 0) {
-                draggingText.textY = 0;
-            }
-
-            if (draggingText.textY + fontSize > cnvHeight) {
-                draggingText.textY = cnvHeight - fontSize;
-            }
-        }
-
-        draw();
-    }
-};
 
 // クリア処理
 $("#btnClear").click(function () {
@@ -431,15 +263,6 @@ canvas.addEventListener('mouseout', function (e) { mouseOut(e); }, false);
 canvas.addEventListener('touchstart', function (e) { touchStartEvent(e); }, false);
 canvas.addEventListener('touchmove', function (e) { touchMoveEvent(e); }, false);
 canvas.addEventListener('touchend', function (e) { touchEndEvent(e); }, false);
-
-// let draggableItems = $("#canvas");
-// for(let i=0; i<draggableItems.length; ++i){
-//     let item = draggableItems[i];
-//     item.addEventListener('touchstart', touchStartEvent, false);
-//     item.addEventListener('touchmove', touchMoveEvent, false);
-//     item.addEventListener('touchend', touchEndEvent, false);
-// }
-
 
 // 編み目記号の選択
 
@@ -600,10 +423,103 @@ document.getElementById('naganaga_urahikiage').addEventListener('click', functio
     addImage("image/naganaga_urahikiage.png");
 });
 
-
 //#endregion
 
 // 処理
+// 画像を選択
+function imgClick(posX, posY) {
+    let { targetImg, targetText } = getTarget(posX, posY);
+    dragTarget.image = targetImg;
+    dragTarget.text = targetText;
+
+    rotateTarget = targetImg;
+
+    // 削除モード
+    if (drawMode == MODE.DELETE) {
+        // 削除対象を描画対象から削除する
+        if (targetImg > -1) {
+            images.splice(targetImg, 1);
+        }
+
+        // 文字
+        if (targetText > -1) {
+            texts.splice(targetText, 1);
+        }
+
+        draw();
+        return;
+    }
+
+    if (dragTarget.image > -1 || dragTarget.text > -1) {
+        // 画像を強調する
+        // let x = texts[dragTarget.text].textX;
+        // let y = texts[dragTarget.text].textY;
+
+        // context.strokeStyle = "blue";
+        // context.strokeRect(x, y, texts[dragTarget.text].textWidth, texts[dragTarget.text].textHeight);
+
+        isDragging = true;
+    }
+}
+
+// 画像を移動時
+function imgMove(posX, posY) {
+    // ドラッグ時
+    if (isDragging) {
+        // 画像
+        if (dragTarget.image > -1) {
+            const draggingImage = images[dragTarget.image];
+
+            draggingImage.drawOffsetX = posX - draggingImage.drawWidth / 2;
+            draggingImage.drawOffsetY = posY - draggingImage.drawHeight / 2;
+
+            // 画面外防止
+            if (draggingImage.drawOffsetX < 0) {
+                draggingImage.drawOffsetX = 0;
+            }
+
+            if (draggingImage.drawOffsetX + imgWidth > cnvWidth) {
+                draggingImage.drawOffsetX = cnvWidth - imgWidth;
+            }
+
+            if (draggingImage.drawOffsetY < 0) {
+                draggingImage.drawOffsetY = 0;
+            }
+
+            if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
+                draggingImage.drawOffsetY = cnvHeight - imgHeight;
+            }
+        }
+
+        // テキスト
+        if (dragTarget.text > -1) {
+            const draggingText = texts[dragTarget.text];
+
+            draggingText.textX = posX - draggingText.textWidth / 2;
+            draggingText.textY = posY - draggingText.textHeight / 2;
+
+            // 画面外防止
+            if (draggingText.textX < 0) {
+                draggingText.textX = 0;
+            }
+
+            if (draggingText.textX + draggingText.textWidth > cnvWidth) {
+                draggingText.textX = cnvWidth - draggingText.textWidth;
+            }
+
+            if (draggingText.textY < 0) {
+                draggingText.textY = 0;
+            }
+
+            if (draggingText.textY + fontSize > cnvHeight) {
+                draggingText.textY = cnvHeight - fontSize;
+            }
+        }
+
+        draw();
+    }
+}
+
 // クリック対象の取得
 function getTarget(x, y) {
     // 画像の判定
@@ -632,7 +548,6 @@ function getTarget(x, y) {
             targetText = i;
         }
     }
-
     return {
         targetImg,
         targetText
@@ -656,7 +571,7 @@ function draw() {
         else {
             context.drawImage(image, image.drawOffsetX, image.drawOffsetY, image.drawWidth, image.drawHeight);
         }
-    }   
+    }
 
     // テキストの描画
     for (let text of texts) {
@@ -743,17 +658,17 @@ function drawLineSolid() {
 }
 
 // 半角・全角チェック：半角=true 全角=false
-function isHan(c){
+function isHan(c) {
     var code = c.charCodeAt(0);
     var f;
-    
-    f  = (code >= 0x0 && code < 0x81);
+
+    f = (code >= 0x0 && code < 0x81);
     f |= (code == 0xf8f0);
     f |= (code >= 0xff61 && code < 0xffa0);
     f |= (code >= 0xf8f1 && code < 0xf8f4);
-    
+
     return !!f;
-  }
+}
 
 // ボタンの色の変更：編み図記号
 $(function () {
