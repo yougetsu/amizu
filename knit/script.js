@@ -9,9 +9,11 @@ let dragTarget = {
 }
 
 let rotateTarget = -1;
-let scrollVol; // スクロール（縦）の移動量
 let imgWidth = 60;
 let imgHeight = 60;
+
+// フラグ
+let reset = true; // 画像の配置位置のフラグ
 
 // 定数
 const cnvWidth = 800;
@@ -145,13 +147,21 @@ function addImage(imgName) {
 
     const lastImage = images[images.length - 1];
 
-    // 描画対象の位置指定(画面外にいかないように)
-    image.drawOffsetX = lastImage ?
+    // 初回、またはキャンバスを一度クリック時、画像の配置位置を左上に初期化する
+    if(reset == true){
+        image.drawOffsetX = 0;
+        image.drawOffsetY = 0;
+        reset = false;
+    }else{
+        // 描画対象の位置指定(画面外にいかないように)
+        image.drawOffsetX = lastImage ?
         lastImage.drawOffsetX + imgWidth >= cnvWidth ? cnvWidth - imgWidth : lastImage.drawOffsetX + 10
         : 0;
-    image.drawOffsetY = lastImage ?
-        lastImage.drawOffsetY + imgHeight >= cnvHeight ? cnvHeight - imgHeight : lastImage.drawOffsetY + 10
+        image.drawOffsetY = lastImage ?
+        lastImage.drawOffsetY + imgHeight >= cnvHeight ? cnvHeight - imgHeight : lastImage.drawOffsetY
         : 0;
+    }
+
     image.drawWidth = imgWidth;
     image.drawHeight = imgHeight;
 
@@ -186,9 +196,8 @@ $("#btnEdit").click(function () {
 // マウス＿クリック時の処理
 let mouseDown = function (e) {
     // クリック対象の取得
-    scrollVol = window.pageYOffset;
     let posX = parseInt(e.clientX - canvas.offsetLeft);
-    let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
+    let posY = parseInt(e.clientY - canvas.offsetTop + window.pageYOffset);
 
     imgClick(posX, posY);
 }
@@ -460,6 +469,9 @@ function imgClick(posX, posY) {
 
         isDragging = true;
     }
+
+    // 画像の初期配置設定をリセットする
+    reset = true;
 }
 
 // 画像を移動時
