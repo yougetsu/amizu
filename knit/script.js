@@ -229,11 +229,6 @@ let mouseUp = function (e) {
     isDragging = false;
 };
 
-// canvasの枠から外れた
-let mouseOut = function (e) {
-    // canvas外にマウスカーソルが移動した場合に、ドラッグ終了としたい場合はコメントインする
-    // mouseUp(e);
-}
 
 // ドラッグ中
 let mouseMove = function (e) {
@@ -241,6 +236,122 @@ let mouseMove = function (e) {
     scrollVol = window.pageYOffset;
     let posX = parseInt(e.clientX - canvas.offsetLeft);
     let posY = parseInt(e.clientY - canvas.offsetTop + scrollVol);
+
+    // ドラッグ時
+    if (isDragging) {
+        // 画像
+        if (dragTarget.image > -1) {
+            const draggingImage = images[dragTarget.image];
+
+            draggingImage.drawOffsetX = posX - draggingImage.drawWidth / 2;
+            draggingImage.drawOffsetY = posY - draggingImage.drawHeight / 2;
+
+            // 画面外防止
+            if (draggingImage.drawOffsetX < 0) {
+                draggingImage.drawOffsetX = 0;
+            }
+
+            if (draggingImage.drawOffsetX + imgWidth > cnvWidth) {
+                draggingImage.drawOffsetX = cnvWidth - imgWidth;
+            }
+
+            if (draggingImage.drawOffsetY < 0) {
+                draggingImage.drawOffsetY = 0;
+            }
+
+            if (draggingImage.drawOffsetY + imgHeight > cnvHeight) {
+                draggingImage.drawOffsetY = cnvHeight - imgHeight;
+            }
+        }
+
+        // テキスト
+        if (dragTarget.text > -1) {
+            const draggingText = texts[dragTarget.text];
+
+            draggingText.textX = posX - draggingText.textWidth / 2;
+            draggingText.textY = posY - draggingText.textHeight / 2;
+
+            // 画面外防止
+            if (draggingText.textX < 0) {
+                draggingText.textX = 0;
+            }
+
+            if (draggingText.textX + draggingText.textWidth > cnvWidth) {
+                draggingText.textX = cnvWidth - draggingText.textWidth;
+            }
+
+            if (draggingText.textY < 0) {
+                draggingText.textY = 0;
+            }
+
+            if (draggingText.textY + fontSize > cnvHeight) {
+                draggingText.textY = cnvHeight - fontSize;
+            }
+        }
+
+        draw();
+    }
+};
+
+// canvasの枠から外れた
+let mouseOut = function (e) {
+    // canvas外にマウスカーソルが移動した場合に、ドラッグ終了としたい場合はコメントインする
+    // mouseUp(e);
+}
+
+// スマホ＿タッチ時
+let touchStartEvent = function (e) {
+    e.preventDefault();
+
+    // クリック対象の取得
+    scrollVol = window.pageYOffset;
+    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
+    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + scrollVol);
+
+    // alert("x座標は"+ posX + " Y座標は" + posY);
+
+    let { targetImg, targetText } = getTarget(posX, posY);
+    dragTarget.image = targetImg;
+    dragTarget.text = targetText;
+
+    rotateTarget = targetImg;
+
+    // 削除モード
+    if (drawMode == MODE.DELETE) {
+        // 削除対象を描画対象から削除する
+        if (targetImg > -1) {
+            images.splice(targetImg, 1);
+        }
+
+        // 文字
+        if (targetText > -1) {
+            texts.splice(targetText, 1);
+        }
+
+        draw();
+        return;
+    }
+
+    if (dragTarget.image > -1 || dragTarget.text > -1) {
+        isDragging = true;
+    }
+}
+
+// ドラッグ終了
+let touchEndEvent = function (e) {
+    e.preventDefault();
+    isDragging = false;
+};
+
+
+// スマホ＿スワイプ中
+let touchMoveEvent = function (e) {
+    e.preventDefault();
+
+    // ドラッグ終了位置
+    scrollVol = window.pageYOffset;
+    let posX = parseInt(e.touches[0].clientX - canvas.offsetLeft);
+    let posY = parseInt(e.touches[0].clientY - canvas.offsetTop + scrollVol);
 
     // ドラッグ時
     if (isDragging) {
@@ -316,6 +427,20 @@ document.body.addEventListener('mousemove', function (e) { mouseMove(e); }, fals
 document.body.addEventListener('mouseup', function (e) { mouseUp(e); }, false);
 canvas.addEventListener('mouseout', function (e) { mouseOut(e); }, false);
 
+// スマホ対応
+canvas.addEventListener('touchstart', function (e) { touchStartEvent(e); }, false);
+canvas.addEventListener('touchmove', function (e) { touchMoveEvent(e); }, false);
+canvas.addEventListener('touchend', function (e) { touchEndEvent(e); }, false);
+
+// let draggableItems = $("#canvas");
+// for(let i=0; i<draggableItems.length; ++i){
+//     let item = draggableItems[i];
+//     item.addEventListener('touchstart', touchStartEvent, false);
+//     item.addEventListener('touchmove', touchMoveEvent, false);
+//     item.addEventListener('touchend', touchEndEvent, false);
+// }
+
+
 // 編み目記号の選択
 
 //#region 編み目記号
@@ -382,6 +507,99 @@ document.getElementById('tyunaga_3_plus').addEventListener('click', function () 
 document.getElementById('naga').addEventListener('click', function () {
     addImage("image/naga.png");
 });
+
+document.getElementById('naga_2_plus').addEventListener('click', function () {
+    addImage("image/naga_2_plus.png");
+});
+
+document.getElementById('naga_3_plus').addEventListener('click', function () {
+    addImage("image/naga_3_plus.png");
+});
+
+document.getElementById('naga_2_minus').addEventListener('click', function () {
+    addImage("image/naga_2_minus.png");
+});
+
+document.getElementById('naga_3_minus').addEventListener('click', function () {
+    addImage("image/naga_3_minus.png");
+});
+
+document.getElementById('naganaga').addEventListener('click', function () {
+    addImage("image/naganaga.png");
+});
+
+document.getElementById('naganaga_2_plus').addEventListener('click', function () {
+    addImage("image/naganaga_2_plus.png");
+});
+
+document.getElementById('naganaga_3_plus').addEventListener('click', function () {
+    addImage("image/naganaga_3_plus.png");
+});
+
+document.getElementById('naganaga_2_minus').addEventListener('click', function () {
+    addImage("image/naganaga_2_minus.png");
+});
+
+document.getElementById('naganaga_3_minus').addEventListener('click', function () {
+    addImage("image/naganaga_3_minus.png");
+});
+
+document.getElementById('mitumaki_naga').addEventListener('click', function () {
+    addImage("image/mitumaki_naga.png");
+});
+
+document.getElementById('mitumaki_naga_2_plus').addEventListener('click', function () {
+    addImage("image/mitumaki_naga_2_plus.png");
+});
+
+document.getElementById('mitumaki_naga_3_plus').addEventListener('click', function () {
+    addImage("image/mitumaki_naga_3_plus.png");
+});
+
+document.getElementById('mitumaki_naga_2_minus').addEventListener('click', function () {
+    addImage("image/mitumaki_naga_2_minus.png");
+});
+
+document.getElementById('mitumaki_naga_3_minus').addEventListener('click', function () {
+    addImage("image/mitumaki_naga_3_minus.png");
+});
+
+document.getElementById('tatiagari_2').addEventListener('click', function () {
+    addImage("image/tatiagari_2.png");
+});
+
+document.getElementById('tatiagari_3').addEventListener('click', function () {
+    addImage("image/tatiagari_3.png");
+});
+
+document.getElementById('tyunaga_3_tama').addEventListener('click', function () {
+    addImage("image/tyunaga_3_tama.png");
+});
+
+document.getElementById('naga_3_tama').addEventListener('click', function () {
+    addImage("image/naga_3_tama.png");
+});
+
+document.getElementById('naga_5_papu').addEventListener('click', function () {
+    addImage("image/naga_5_papu.png");
+});
+
+document.getElementById('naga_omotehikiage').addEventListener('click', function () {
+    addImage("image/naga_omotehikiage.png");
+});
+
+document.getElementById('naga_urahikiage').addEventListener('click', function () {
+    addImage("image/naga_urahikiage.png");
+});
+
+document.getElementById('naganaga_omotehikiage').addEventListener('click', function () {
+    addImage("image/naganaga_omotehikiage.png");
+});
+
+document.getElementById('naganaga_urahikiage').addEventListener('click', function () {
+    addImage("image/naganaga_urahikiage.png");
+});
+
 
 //#endregion
 
