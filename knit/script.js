@@ -8,12 +8,20 @@ let dragTarget = {
     text: -1
 }
 
-let rotateTarget = -1;
+let targetObj = -1;
 let imgWidth = 60;
 let imgHeight = 60;
+let copyImage = new Image();
+let pasteCount = 0;  // 貼り付け時の画像の位置
+
+// 編み目記号の判断
+let pattern;
+// オブジェクトの格納
+let images = [];
+let texts = [];
 
 // フラグ
-let reset = true; // 画像の配置位置のフラグ
+let reset = true; // 画像の配置位置のフラグ false:初期位置
 
 // 定数
 const cnvWidth = 800;
@@ -38,15 +46,6 @@ const LINEMODE = {
 let drawMode = MODE.ADD;
 let lineMode = LINEMODE.OFF;
 
-
-// 編み目記号の判断
-let pattern;
-
-// オブジェクトの格納
-let images = [];
-let texts = [];
-
-
 // ガイドライン：実線
 $("#btnLineSolid").click(function () {
     lineMode = LINEMODE.SOLID
@@ -69,7 +68,7 @@ $("#btnLineOFF").click(function () {
 $("#btnLeftRotate").click(function () {
 
     // 未選択時抜ける
-    if (rotateTarget == -1) {
+    if (targetObj == -1) {
         return;
     }
 
@@ -78,7 +77,7 @@ $("#btnLeftRotate").click(function () {
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     // 角度の更新
-    let imgTarget = images[rotateTarget];
+    let imgTarget = images[targetObj];
     imgTarget.drawAngle = (imgTarget.drawAngle - angle <= -360) ? 0 : imgTarget.drawAngle - angle;
 
     draw();
@@ -88,7 +87,7 @@ $("#btnLeftRotate").click(function () {
 $("#btnRightRotate").click(function () {
 
     // 未選択時抜ける
-    if (rotateTarget == -1) {
+    if (targetObj == -1) {
         return;
     }
 
@@ -97,10 +96,48 @@ $("#btnRightRotate").click(function () {
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     // 角度の更新
-    let imgTarget = images[rotateTarget];
+    let imgTarget = images[targetObj];
     imgTarget.drawAngle = (imgTarget.drawAngle + angle >= 360) ? 0 : imgTarget.drawAngle + angle;
 
     draw();
+})
+
+// コピーボタン
+$("#btnCopy").click(function () {
+
+    // 未選択時抜ける
+    if (targetObj == -1) {
+        return;
+    }
+
+    let tmpImage = images[targetObj];
+    copyImage.src = tmpImage.src;
+    copyImage.drawAngle = tmpImage.drawAngle;
+})
+
+// 貼り付けボタン
+$("#btnPaste").click(function () {
+    // 未選択時抜ける
+    if (copyImage == null) {
+        return;
+    }
+
+    if(reset == true){
+        pasteCount = 0;
+        reset = false;
+    }
+
+    let image = new Image();
+    image.src = copyImage.src;
+    image.drawOffsetX = pasteCount * 10;
+    image.drawOffsetY = 0;
+    image.drawWidth = imgWidth;
+    image.drawHeight = imgHeight;
+    image.drawAngle = copyImage.drawAngle;
+
+    images.push(image);
+    draw();
+    pasteCount++;
 })
 
 
@@ -148,18 +185,18 @@ function addImage(imgName) {
     const lastImage = images[images.length - 1];
 
     // 初回、またはキャンバスを一度クリック時、画像の配置位置を左上に初期化する
-    if(reset == true){
+    if (reset == true) {
         image.drawOffsetX = 0;
         image.drawOffsetY = 0;
         reset = false;
-    }else{
+    } else {
         // 描画対象の位置指定(画面外にいかないように)
         image.drawOffsetX = lastImage ?
-        lastImage.drawOffsetX + imgWidth >= cnvWidth ? cnvWidth - imgWidth : lastImage.drawOffsetX + 10
-        : 0;
+            lastImage.drawOffsetX + imgWidth >= cnvWidth ? cnvWidth - imgWidth : lastImage.drawOffsetX + 10
+            : 0;
         image.drawOffsetY = lastImage ?
-        lastImage.drawOffsetY + imgHeight >= cnvHeight ? cnvHeight - imgHeight : lastImage.drawOffsetY
-        : 0;
+            lastImage.drawOffsetY + imgHeight >= cnvHeight ? cnvHeight - imgHeight : lastImage.drawOffsetY
+            : 0;
     }
 
     image.drawWidth = imgWidth;
@@ -441,7 +478,7 @@ function imgClick(posX, posY) {
     dragTarget.image = targetImg;
     dragTarget.text = targetText;
 
-    rotateTarget = targetImg;
+    targetObj = targetImg;
 
     // 削除モード
     if (drawMode == MODE.DELETE) {
