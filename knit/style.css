@@ -15,6 +15,31 @@ img{
     max-width:100%;
 }
 
+button{
+   /* ブラウザ特有のスタイルを無効にする */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn, .movebtn{
+  height: 35px;
+  width: 80px;
+  text-decoration: none;
+  background: #fdc689;
+  color: gray;
+  text-align: center;
+  border-radius: 3px;
+  box-shadow: 1px 2px 4px #d4842c;
+}
+
+.movebtn:active{  /* クリック時の設定 */
+    -ms-transform: translateY(2px);
+    -webkit-transform: translateY(2px);
+    transform: translateY(2px);
+    box-shadow:none;
+  }
+
 .main-nav{
     display:flex;
     font-size: 1.25rem;
@@ -41,11 +66,9 @@ img{
 }
 
 #home{
-    
     height: 200px;
     margin-bottom: 40px;
 }
-
 
 .big-bg{
     background-size: cover;
@@ -92,11 +115,13 @@ img{
 
 
 /* ボタンの設定 */
-.clbtn, .linebtn, .btn{
+.clbtn, .linebtn{
     margin-bottom: 5px;
     width: 60px;
     height: 30px;
 }
+
+
 
 /* 記号画像の設定 */
 .imgKigou {
