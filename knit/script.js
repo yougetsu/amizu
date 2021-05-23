@@ -66,26 +66,16 @@ $("#btnLineOFF").click(function () {
 
 // 左回転ボタン
 $("#btnLeftRotate").click(function () {
-
-    // 未選択時抜ける
-    if (targetObj == -1) {
-        return;
-    }
-
-    // キャンバスをクリア
-    context.fillStyle = '#ffe4c4'
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 角度の更新
-    let imgTarget = images[targetObj];
-    imgTarget.drawAngle = (imgTarget.drawAngle - angle <= -360) ? 0 : imgTarget.drawAngle - angle;
-
-    draw();
+    btnRotate("Left");
 })
 
 // 右回転ボタン
 $("#btnRightRotate").click(function () {
+    btnRotate("Right");
+})
 
+// 回転処理
+function btnRotate(btnName) {
     // 未選択時抜ける
     if (targetObj == -1) {
         return;
@@ -97,10 +87,17 @@ $("#btnRightRotate").click(function () {
 
     // 角度の更新
     let imgTarget = images[targetObj];
-    imgTarget.drawAngle = (imgTarget.drawAngle + angle >= 360) ? 0 : imgTarget.drawAngle + angle;
-
+    
+    // 左回転
+    if(btnName == "Left"){
+        imgTarget.drawAngle = (imgTarget.drawAngle - angle <= -360) ? 0 : imgTarget.drawAngle - angle;
+    }
+    if(btnName == "Right"){
+        imgTarget.drawAngle = (imgTarget.drawAngle + angle >= 360) ? 0 : imgTarget.drawAngle + angle;
+    }
     draw();
-})
+}
+
 
 // コピーボタン
 $("#btnCopy").click(function () {
@@ -122,7 +119,7 @@ $("#btnPaste").click(function () {
         return;
     }
 
-    if(reset == true){
+    if (reset == true) {
         pasteCount = 0;
         reset = false;
     }
