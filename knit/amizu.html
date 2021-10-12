@@ -76,11 +76,12 @@
 
         <div class="item">
             <div style="padding-bottom: 10px;">
-                <button id="btnDelete" class="btn">削除</button>
-                <button id="btnLeftRotate" class="movebtn" >左回転</button>
-                <button id="btnRightRotate" class="movebtn">右回転</button> 
-                <button id="btnCopy" class="movebtn">コピー</button> 
-                <button id="btnPaste" class="movebtn">貼付け</button> 
+                <button id="btnDelete" class="btn" title="削除モード"><span class="buttonImage" style="background-image: url('image/dustBox.png');"></span></button>
+                <button id="btnLeftRotate" class="movebtn" title="左に回転" ><span class="buttonImage" style="background-image: url('image/rightArrow.png');transform: scale(-1, 1)"></button> </button>
+                <button id="btnRightRotate" class="movebtn" title="右に回転"><span class="buttonImage" style="background-image: url('image/rightArrow.png');"></button> 
+                <button id="btnCopy" class="movebtn" title="コピー"><span class="buttonImage" style="background-image: url('image/copy.png');"></button> 
+                <button id="btnPaste" class="movebtn" title="ペースト"><span class="buttonImage" style="background-image: url('image/paste.png');"></button> 
+                <button class="movebtn" title="ダウンロード"><a id="btnDL" href="#" download="canvas.jpg"><span class="buttonImage" style="background-image: url('image/download.png');"></span></a></button>
             </div>
 
             <canvas id="canvas" width="800" height="600">
@@ -91,9 +92,7 @@
                 <span style="color: black;">ガイドライン：</span>
                 <button id="btnLineSolid" class="linebtn">実線</button>
                 <button id="btnLinePoint" class="linebtn">点線</button>
-                <button id="btnLineOFF" class="linebtn">OFF</button>
-
-                <!-- <span style="color: black;text-align: right;">画像の回転：</span> -->              
+                <button id="btnLineOFF" class="linebtn">OFF</button>           
             </div>
 
             <div>
@@ -110,7 +109,7 @@
                 <button id="btnClear" class="clbtn">クリア</button>
             </div>
 
-            <a id="btnDL" href="#" download="canvas.jpg">ダウンロード</a>
+            
         </div>
     </div>
 
