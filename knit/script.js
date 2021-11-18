@@ -495,19 +495,8 @@ function imgClick(posX, posY) {
     }
 
     // 画像の強調
-    if (dragTarget.image > -1) {
-        // 画像を強調する
-        // let x = images[dragTarget.image].drawOffsetX;
-        // let y = images[dragTarget.image].drawOffsetY;
-
-        // context.strokeStyle = "blue";
-        // context.strokeRect(x, y, images[dragTarget.image].drawWidth, images[dragTarget.image].drawHeight);
-
-        // isDragging = true;
-    }
-
-    // テキストの強調
-    if (dragTarget.text > -1) {
+    if (dragTarget.image > -1 || dragTarget.text > -1) {
+    
         // 画像を強調する
         // let x = texts[dragTarget.text].textX;
         // let y = texts[dragTarget.text].textY;
@@ -515,7 +504,7 @@ function imgClick(posX, posY) {
         // context.strokeStyle = "blue";
         // context.strokeRect(x, y, texts[dragTarget.text].textWidth, texts[dragTarget.text].textHeight);
 
-        // isDragging = true;
+        isDragging = true;
     }
 
     // 画像の初期配置設定をリセットする
